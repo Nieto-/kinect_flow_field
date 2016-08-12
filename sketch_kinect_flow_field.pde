@@ -12,8 +12,8 @@ import org.openkinect.tests.*;
 
 FlowField           flowField;
 ArrayList<Particle> particles; 
-float               particlesIncrement = 8;
-float               particleSpacing = 2;
+float               particlesIncrement = 6;
+float               particleSpacing = 2.3;
 
 float zTranslate = 0;
 float wPadding;
@@ -25,25 +25,26 @@ Kinect2     kinect2;
 
 void setup() {
   fullScreen(P3D, 2);
+  //size(300, 500);
   background(20);
   flowField = new FlowField(15);
   particles = new ArrayList<Particle>();
 
-  wPadding = 0;
+  wPadding = width / 5;
 
   kinect2 = new Kinect2(this);
   kinect2.initDepth();
   kinect2.initDevice();
   
   minim = new Minim(this);
-  song  = minim.loadFile("gone_too_soon.mp3", 1024);
-  beat  = new BeatDetect();
-  song.play();
+  //song  = minim.loadFile("gone_too_soon.mp3", 1024);
+  //beat  = new BeatDetect();
+  //song.play();
 
 }
 
 void draw() {   
-  fill(20, 50);
+  fill(20, 40);
   rect(0, 0, width, height);
   translate(
     wPadding, 
@@ -55,33 +56,48 @@ void draw() {
   
   int[] depth = kinect2.getRawDepth();
   
+  // TODO: when blinking on beat, store G and B variables. also, probably generate R variable at the start
+  // or maybe make the beat all white?
+  // so it looks like it's Flashing"? 
+  // 
+  // SPEED IS GENERATED AS 2X FASTER FOR ITEMS ON BEAT
   for (int x = 0; x < kinect2.depthWidth; x += particlesIncrement) {
     for (int y = 0; y < kinect2.depthHeight; y += particlesIncrement) {
       int offset = x + y * kinect2.depthWidth;
       int z = depth[offset];
-      //println(z);
       // number compared to z needs to get bigger if we want to capture things at a further distance
-      if (z > 1800 || z == 0) {
+
+      if (z > 2500 || z == 0) {
         continue;
       }
       if ( x < 50) {
         continue;
       }
+      
+      if (y < 100) {
+        continue;
+      }
+      
+      z = z - 1000;
+      
+      //float zTransformed = map(z, -400, 1000, 100, 0);
       Particle particle = new Particle(
         x * particleSpacing, 
-        y * particleSpacing
+        y * particleSpacing,
+        zTransformed
       );
       particles.add(particle);
     }
   } 
+
   
   
-  beat.detect(song.mix);
+  //beat.detect(song.mix);
   
   for (int i = 0; i < particles.size(); i++) {
-    if (beat.isOnset()) {
-      //particles.get(i).changeColor();
-    }
+    //if (beat.isOnset()) {
+    //  particles.get(i).changeColor();
+    //}
     particles.get(i).update();
     particles.get(i).render();
     if (particles.get(i).age > particles.get(i).lifeSpan) {
@@ -103,30 +119,48 @@ class Particle {
   float g;
   float b;
   
-  Particle (float x, float y) {
-    location = new PVector(x, y);
-    velocity = new PVector(0, 0);
+  float red;
+  float green;
+  float blue;
+  
+  Particle (float x, float y, float z) {
+    location = new PVector(x, y, z);
+    velocity = new PVector(0, 0, 0);
+    red = 0;
+    green = random(255);
+    blue = random(255);
+    
     r = 0;
-    g = random(255);
-    b = random(255);
+    g = green;//random(255);
+    b = blue;//random(255);
     
     lifeSpan = random(3, 15);
     speed    = random(2, 4);
   }
   
-  //void changeColor() {
-  //  //r = random(0);
-  //  //if (r == 0) {
-  //  //  r = random(10, 255);
-  //  //  g = 0;
-  //  //  b = 0;
-  //  //} else {
-  //  //  g = random(255);
-  //  //  r = 0;
-  //  //  b = random(255);
-  //  //}
+  void changeColor() {
+    //if (r != 255) {
+    //  r = 255;
+    //  g = 255;
+    //  b = 255;
+    //} else {
+    //  r = red;
+    //  g = green;
+    //  b = blue;
+    
+    //}
+    //r = random(0);
+    //if (r == 0) {
+    //  r = random(10, 255);
+    //  g = 0;
+    //  b = 0;
+    //} else {
+    //  g = random(255);
+    //  r = 0;
+    //  b = random(255);
+    //}
   
-  //}
+  }
   
   void update() {
     // get current velocity
@@ -137,9 +171,11 @@ class Particle {
   }
   
   void render() {
-    fill(r, g, b, 80);
-    noStroke();
-    ellipse(location.x, location.y, 2, 2);
+    //fill(r, g, b, 80);
+    //noStroke();
+    stroke(r, g, b, 80);
+    strokeWeight(2); 
+    point(location.x, location.y, location.z);
   }
 }
 
