@@ -12,8 +12,8 @@ import org.openkinect.tests.*;
 
 FlowField           flowField;
 ArrayList<Particle> particles; 
-float               particlesIncrement = 5;
-float               particleSpacing = 2.1;
+float               particlesIncrement = 4;
+float               particleSpacing = 1.5;
 
 float zTranslate = 1700;
 float wPadding = 0;
@@ -23,6 +23,8 @@ float subtractZ = 0;
 float r;
 float g;
 float b;
+
+boolean onBeat; 
 
 Kinect2                kinect2;
 AudioInput             song;
@@ -58,6 +60,9 @@ void draw() {
     r = random(255);
     g = random(255);
     b = random(255);
+    onBeat = true;
+  } else {
+    onBeat = false;
   }
   
   translate(
@@ -115,7 +120,7 @@ class Particle {
     velocity = new PVector(0, 0, 0);
     
     lifeSpan = random(3, 15);
-    speed    = random(2, 4);
+    speed    = random(2, 10);
   }
   
   //void changeColor() {
@@ -144,15 +149,19 @@ class Particle {
   
   void update() {
     // get current velocity
-    velocity = flowField.lookupVelocity(location);
-    velocity.mult(speed);
-    location.add(velocity);
-    age++;
+    if (!onBeat) {
+      velocity = flowField.lookupVelocity(location);
+      velocity.mult(speed);
+      location.add(velocity);
+      age++;
+    }
+    
   }
   
   void render() {
     //fill(r, g, b, 80);
     //noStroke();
+    strokeWeight(1.5);
     stroke(r, g, b, 100);
     strokeWeight(2); 
     point(location.x, location.y, location.z);
