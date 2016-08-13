@@ -12,45 +12,45 @@ import org.openkinect.tests.*;
 
 FlowField           flowField;
 ArrayList<Particle> particles; 
-float               particlesIncrement = 6;
-float               particleSpacing = 2.3;
+float               particlesIncrement = 5;
+float               particleSpacing = 2.1;
 
-float zTranslate = 0;
-float wPadding;
+float zTranslate = 1700;
+float wPadding = 0;
+float maxDepth = 2600;
+float subtractZ = 0;
 
-AudioPlayer song;
-Minim       minim;
-BeatDetect  beat;
-Kinect2     kinect2;
+Kinect2                kinect2;
+AudioInput             song;
+Minim                  minim;
+ddf.minim.analysis.FFT fft;
+BeatDetect             beat;
 
 void setup() {
-  fullScreen(P3D, 2);
-  //size(300, 500);
-  background(20);
+  fullScreen(P3D);
+  //size(1000, 800);
+  background(0);
   flowField = new FlowField(15);
   particles = new ArrayList<Particle>();
 
-  wPadding = width / 5;
+  //wPadding = width / 5;
 
   kinect2 = new Kinect2(this);
   kinect2.initDepth();
   kinect2.initDevice();
   
   minim = new Minim(this);
-  //song  = minim.loadFile("gone_too_soon.mp3", 1024);
-  //beat  = new BeatDetect();
-  //song.play();
 
 }
 
-void draw() {   
-  fill(20, 40);
-  rect(0, 0, width, height);
+void draw() {  
   translate(
     wPadding, 
     0, 
     zTranslate
   );
+  
+  background(0);
   
   flowField.updateField();
   
@@ -67,37 +67,21 @@ void draw() {
       int z = depth[offset];
       // number compared to z needs to get bigger if we want to capture things at a further distance
 
-      if (z > 2500 || z == 0) {
+      if (z > maxDepth || z == 0) {
         continue;
       }
-      if ( x < 50) {
-        continue;
-      }
-      
-      if (y < 100) {
-        continue;
-      }
-      
-      z = z - 1000;
-      
-      //float zTransformed = map(z, -400, 1000, 100, 0);
+
       Particle particle = new Particle(
         x * particleSpacing, 
         y * particleSpacing,
-        zTransformed
+        subtractZ - z
       );
       particles.add(particle);
     }
   } 
 
   
-  
-  //beat.detect(song.mix);
-  
   for (int i = 0; i < particles.size(); i++) {
-    //if (beat.isOnset()) {
-    //  particles.get(i).changeColor();
-    //}
     particles.get(i).update();
     particles.get(i).render();
     if (particles.get(i).age > particles.get(i).lifeSpan) {
@@ -138,29 +122,29 @@ class Particle {
     speed    = random(2, 4);
   }
   
-  void changeColor() {
-    //if (r != 255) {
-    //  r = 255;
-    //  g = 255;
-    //  b = 255;
-    //} else {
-    //  r = red;
-    //  g = green;
-    //  b = blue;
+  //void changeColor() {
+  //  //if (r != 255) {
+  //  //  r = 255;
+  //  //  g = 255;
+  //  //  b = 255;
+  //  //} else {
+  //  //  r = red;
+  //  //  g = green;
+  //  //  b = blue;
     
-    //}
-    //r = random(0);
-    //if (r == 0) {
-    //  r = random(10, 255);
-    //  g = 0;
-    //  b = 0;
-    //} else {
-    //  g = random(255);
-    //  r = 0;
-    //  b = random(255);
-    //}
+  //  //}
+  //  //r = random(0);
+  //  //if (r == 0) {
+  //  //  r = random(10, 255);
+  //  //  g = 0;
+  //  //  b = 0;
+  //  //} else {
+  //  //  g = random(255);
+  //  //  r = 0;
+  //  //  b = random(255);
+  //  //}
   
-  }
+  //}
   
   void update() {
     // get current velocity
@@ -173,7 +157,7 @@ class Particle {
   void render() {
     //fill(r, g, b, 80);
     //noStroke();
-    stroke(r, g, b, 80);
+    stroke(r, g, b, 100);
     strokeWeight(2); 
     point(location.x, location.y, location.z);
   }
@@ -201,8 +185,8 @@ class FlowField {
          //float angle = radians((noise(xNoise, yNoise, zNoise)) *700) + noise(frameCount);
          //sin(noise(xNoise, yNoise, zNoise) * frameCount) * cos(noise(xOff, yOff, zOff));
          //map(noise(xNoise, yNoise, zNoise), 0, 1, 0, radians(360));
-         //float angle = radians((noise(xNoise, yNoise, zNoise)) *700);
-         float angle = radians(noise(xNoise, yNoise, zNoise) * 700);
+         float angle = radians((noise(xNoise, yNoise, zNoise)) *700);
+         //float angle = radians(noise(xNoise, yNoise, zNoise) * 700);
          grid[i][j] = PVector.fromAngle(angle);
          yNoise += 0.1;
        }
