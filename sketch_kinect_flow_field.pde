@@ -20,6 +20,10 @@ float wPadding = 0;
 float maxDepth = 2600;
 float subtractZ = 0;
 
+float r;
+float g;
+float b;
+
 Kinect2                kinect2;
 AudioInput             song;
 Minim                  minim;
@@ -28,22 +32,34 @@ BeatDetect             beat;
 
 void setup() {
   fullScreen(P3D);
-  //size(1000, 800);
   background(0);
-  flowField = new FlowField(15);
+  flowField = new FlowField(20);
   particles = new ArrayList<Particle>();
-
-  //wPadding = width / 5;
 
   kinect2 = new Kinect2(this);
   kinect2.initDepth();
   kinect2.initDevice();
   
+  r = 255;
+  g = 255;
+  b = 255;
+  
   minim = new Minim(this);
+  song  = minim.getLineIn();
+  beat  = new BeatDetect();
+ 
 
 }
 
 void draw() {  
+  beat.detect(song.mix);
+  
+  if ( beat.isOnset() ) {
+    r = random(255);
+    g = random(255);
+    b = random(255);
+  }
+  
   translate(
     wPadding, 
     0, 
@@ -56,17 +72,11 @@ void draw() {
   
   int[] depth = kinect2.getRawDepth();
   
-  // TODO: when blinking on beat, store G and B variables. also, probably generate R variable at the start
-  // or maybe make the beat all white?
-  // so it looks like it's Flashing"? 
-  // 
-  // SPEED IS GENERATED AS 2X FASTER FOR ITEMS ON BEAT
+  
   for (int x = 0; x < kinect2.depthWidth; x += particlesIncrement) {
     for (int y = 0; y < kinect2.depthHeight; y += particlesIncrement) {
       int offset = x + y * kinect2.depthWidth;
       int z = depth[offset];
-      // number compared to z needs to get bigger if we want to capture things at a further distance
-
       if (z > maxDepth || z == 0) {
         continue;
       }
@@ -99,24 +109,10 @@ class Particle {
   float lifeSpan;
   float age;
   
-  float r;
-  float g;
-  float b;
-  
-  float red;
-  float green;
-  float blue;
   
   Particle (float x, float y, float z) {
     location = new PVector(x, y, z);
     velocity = new PVector(0, 0, 0);
-    red = 0;
-    green = random(255);
-    blue = random(255);
-    
-    r = 0;
-    g = green;//random(255);
-    b = blue;//random(255);
     
     lifeSpan = random(3, 15);
     speed    = random(2, 4);
