@@ -1,3 +1,6 @@
+// original params were 0.04 for z Change
+// and 20 in the field
+
 import ddf.minim.*;
 import ddf.minim.analysis.*;
 import ddf.minim.effects.*;
@@ -12,12 +15,19 @@ import org.openkinect.tests.*;
 
 FlowField           flowField;
 ArrayList<Particle> particles; 
-float               particlesIncrement = 4;
-float               particleSpacing = 1.5;
+float               particlesIncrement = 6;
+//float               particleSpacing = 1.5;
+float        particleSpacing = 1.8;
+float        particleSpacing2 = 1.9;
 
-float zTranslate = 1700;
-float wPadding = 0;
-float maxDepth = 2600;
+float particlesIncrement2 = 2;
+
+float zTranslate = 1000;
+float xPadding = 0;
+//float maxDepth = 2600;
+
+float maxDepth = 2100;
+
 float subtractZ = 0;
 
 float r;
@@ -33,16 +43,17 @@ ddf.minim.analysis.FFT fft;
 BeatDetect             beat;
 
 void setup() {
-  fullScreen(P3D);
+  fullScreen(P3D, 2);
   background(0);
   flowField = new FlowField(20);
   particles = new ArrayList<Particle>();
+  xPadding = width / 10;
 
   kinect2 = new Kinect2(this);
   kinect2.initDepth();
   kinect2.initDevice();
   
-  r = 255;
+  r = 160;
   g = 255;
   b = 255;
   
@@ -56,17 +67,17 @@ void setup() {
 void draw() {  
   beat.detect(song.mix);
   
-  if ( beat.isOnset() ) {
-    r = random(255);
-    g = random(255);
-    b = random(255);
-    onBeat = true;
-  } else {
-    onBeat = false;
-  }
+  //if ( beat.isOnset() ) {
+  //  r = random(255);
+  //  g = random(255);
+  //  b = random(255);
+  //  onBeat = true;
+  //} else {
+  //  onBeat = false;
+  //}
   
   translate(
-    wPadding, 
+    xPadding, 
     0, 
     zTranslate
   );
@@ -86,6 +97,7 @@ void draw() {
         continue;
       }
 
+
       Particle particle = new Particle(
         x * particleSpacing, 
         y * particleSpacing,
@@ -103,6 +115,24 @@ void draw() {
       particles.remove(i);
     }
   }
+  
+   stroke(160, 255, 255, 190);
+   for (int x = 0; x < kinect2.depthWidth; x += particlesIncrement2) {
+   for (int y = 0; y < kinect2.depthHeight; y += particlesIncrement2) {
+      int offset = x + y * kinect2.depthWidth;
+      int z = depth[offset];
+      if (z > maxDepth || z == 0) {
+        continue;
+      }
+     if ( beat.isOnset() ) {
+            point(
+            x * particleSpacing2, 
+            y * particleSpacing2, 
+            subtractZ - z
+          );
+     } 
+   }
+   }
 }
 
 
@@ -119,33 +149,9 @@ class Particle {
     location = new PVector(x, y, z);
     velocity = new PVector(0, 0, 0);
     
-    lifeSpan = random(3, 15);
-    speed    = random(2, 10);
+    lifeSpan = random(9, 28);
+    speed    = random(4, 9);
   }
-  
-  //void changeColor() {
-  //  //if (r != 255) {
-  //  //  r = 255;
-  //  //  g = 255;
-  //  //  b = 255;
-  //  //} else {
-  //  //  r = red;
-  //  //  g = green;
-  //  //  b = blue;
-    
-  //  //}
-  //  //r = random(0);
-  //  //if (r == 0) {
-  //  //  r = random(10, 255);
-  //  //  g = 0;
-  //  //  b = 0;
-  //  //} else {
-  //  //  g = random(255);
-  //  //  r = 0;
-  //  //  b = random(255);
-  //  //}
-  
-  //}
   
   void update() {
     // get current velocity
@@ -161,7 +167,7 @@ class Particle {
   void render() {
     //fill(r, g, b, 80);
     //noStroke();
-    strokeWeight(1.5);
+    strokeWeight(2);
     stroke(r, g, b, 100);
     strokeWeight(2); 
     point(location.x, location.y, location.z);
@@ -190,14 +196,14 @@ class FlowField {
          //float angle = radians((noise(xNoise, yNoise, zNoise)) *700) + noise(frameCount);
          //sin(noise(xNoise, yNoise, zNoise) * frameCount) * cos(noise(xOff, yOff, zOff));
          //map(noise(xNoise, yNoise, zNoise), 0, 1, 0, radians(360));
-         float angle = radians((noise(xNoise, yNoise, zNoise)) *700);
+         float angle = radians((noise(xNoise, yNoise, zNoise)) * 700);
          //float angle = radians(noise(xNoise, yNoise, zNoise) * 700);
          grid[i][j] = PVector.fromAngle(angle);
-         yNoise += 0.1;
+         yNoise += 0.01;
        }
-       xNoise += 0.1;
+       xNoise += 0.01;
      }
-     zNoise += 0.04;
+     zNoise += 0.02;
    
    }
   
