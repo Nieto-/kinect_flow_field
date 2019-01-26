@@ -20,7 +20,8 @@ float particlesIncrement2 = 2;
 
 float zTranslate = 1000;
 float xPadding = 0;
-float maxDepth = 2100;
+//float maxDepth = 2100;
+float maxDepth = 3000;
 float subtractZ = 0;
 
 float r;
@@ -46,9 +47,9 @@ void setup() {
   kinect2.initDepth();
   kinect2.initDevice();
 
-  r = 160;
+  r = 120;
   g = 255;
-  b = 255;
+  b = 160;
 
   minim = new Minim(this);
   song  = minim.getLineIn();
